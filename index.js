@@ -23,16 +23,13 @@ function Slack(token) {
  * @param callback Callback function (err)
  */
 Slack.prototype.uploadFile = function (data, callback) {
-	var file;
-	if (data.file) {
-		file = data.file;
-		data = _.omit(data, 'file');
-	}
+    data = _.omit(data, 'file', 'content');
+    var form_data = _.pick(data, 'file', 'content');
 	var params = _.reduce(data, function (res, value, key) {
 		return util.format('%s&%s=%s', res, _.underscored(key), value);
 	}, '');
 	var endpoint = util.format('%sfiles.upload?token=%s%s', this.api, this.token, params);
-	var req = request.post(endpoint, function (err, response, body) {
+	var req = request.post({url: endpoint, formData: form_data}, function (err, response, body) {
 		if (err) {
 			return callback(err);
 		}
@@ -45,10 +42,6 @@ Slack.prototype.uploadFile = function (data, callback) {
 		}
 		callback();
 	});
-	if (file) {
-		var form = req.form();
-		form.append('file', file);
-	}
 };
 
 module.exports = Slack;
